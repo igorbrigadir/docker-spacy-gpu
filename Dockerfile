@@ -1,4 +1,4 @@
-FROM nvidia/cuda:10.0-cudnn7-runtime-ubuntu18.04
+FROM nvidia/cuda:10.0-runtime
 
 # Setup Python
 ARG DEBIAN_FRONTEND=noninteractive
@@ -8,26 +8,24 @@ RUN apt-get update \
     && add-apt-repository ppa:deadsnakes/ppa \
     && apt-get update
 RUN apt-get install -y python3.7 python3.7-dev
-RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 RUN rm /usr/bin/python3 /usr/bin/python3m \
     && ln -s /usr/bin/python3.7 /usr/bin/python \
     && ln -s /usr/bin/python3.7 /usr/bin/python3 \
     && ln -s /usr/bin/python3.7m /usr/bin/python3m
 RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py \
     && python get-pip.py
+RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Requirements
-COPY requirements.txt /app/
-WORKDIR /app
+COPY requirements.txt .
 
 # App dependencies
-RUN pip3 install -r requirements.txt
+RUN pip3 --no-cache-dir install -r requirements.txt
 
 # Model is in a volume
 
 # App code
-COPY . /app
-WORKDIR /app
+COPY hello_gpu.py .
 
 # Start the App
-CMD ["python", "/app/hello_gpu.py"]
+CMD ["python", "hello_gpu.py"]
