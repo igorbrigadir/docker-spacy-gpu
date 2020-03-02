@@ -23,8 +23,7 @@ WORKDIR /app
 # App dependencies
 RUN pip3 install -r requirements.txt
 
-# Model
-RUN python -m spacy download --user en_trf_distilbertbaseuncased_lg
+# Model is in a volume
 
 # App code
 COPY . /app

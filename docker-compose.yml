@@ -1,0 +1,8 @@
+version: '2.3'
+
+services:
+    spacygpu:
+        image: spacygpu:latest
+        runtime: nvidia
+        volumes:
+            - ./model:/model
