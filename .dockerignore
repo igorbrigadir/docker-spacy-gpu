@@ -1,2 +1,4 @@
 .git
 model
+build-pytorch
+*.whl

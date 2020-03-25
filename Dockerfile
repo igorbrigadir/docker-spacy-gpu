@@ -16,10 +16,12 @@ RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py \
     && python get-pip.py
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# Requirements
-COPY requirements.txt .
+# Install Pytorch 1.1.0 first:
+COPY build-pytorch/torch-1.1.0-cp37-cp37m-linux_x86_64.whl .
+RUN pip3 --no-cache-dir install torch-1.1.0-cp37-cp37m-linux_x86_64.whl && rm torch-1.1.0-cp37-cp37m-linux_x86_64.whl
 
-# App dependencies
+# All other dependencies
+COPY requirements.txt .
 RUN pip3 --no-cache-dir install -r requirements.txt
 
 # Model is in a volume
