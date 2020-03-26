@@ -4,15 +4,30 @@ MODEL_PATH = "${MODEL_NAME}/en_trf_distilbertbaseuncased_lg/${MODEL_NAME}"
 
 all: install build run
 
-install:
+model: 
 	@echo "Downloading Model..."
 	if [ -d "model" ]; then echo "Directory exists."; else mkdir model; fi
 	if [ -d "model/${MODEL_NAME}" ]; then echo "Model exists."; else wget -qO- ${MODEL_DOWNLOAD} | tar --directory ${PWD}/model --strip-components=2 -xzf - ${MODEL_PATH}; fi
+	
+pytorch: 
+	@echo "Making Pytorch 1.1.0 slim version..."
+	if [ ! -z $$(docker images pytorch:slim -q) ]; then echo "Pytorch builder exists"; else DOCKER_BUILDKIT=1 docker build -t pytorch:slim build-pytorch/; fi
+
+cupy:
+	@echo "Making Cupy 7.3.0 slim version..."
+	if [ ! -z $$(docker images cupy:slim -q) ]; then echo "Cupy builder exists"; else DOCKER_BUILDKIT=1 docker build -t cupy:slim build-cupy/; fi
+
+cudnn:
+	@echo "Exctracting cudnn libs from cupy-cuda100"
+	wget https://files.pythonhosted.org/packages/dd/50/b04c6c183a7e272b8a8b715c47dcd8c371000d08ef3808017d8ee856552b/cupy_cuda100-7.3.0-cp37-cp37m-manylinux1_x86_64.whl
+	unzip -p cupy_cuda100-7.3.0-cp37-cp37m-manylinux1_x86_64.whl cupy/.data/lib/libcudnn.so.7 > build-cupy/libcudnn.so.7
+	rm 	cupy_cuda100-7.3.0-cp37-cp37m-manylinux1_x86_64.whl
+
+install: model pytorch cupy
 
 build:
-	@echo "Build Pytorch 1.1.0..."
-	DOCKER_BUILDKIT=1 docker build -t pytorch:slim build-pytorch/
-	docker run --name build-pytorch --runtime=nvidia --rm -it --gpus all -v ${PWD}/build-pytorch:/output pytorch:slim
+	if [ -f "${PWD}/build-pytorch/torch-1.1.0-cp37-cp37m-linux_x86_64.whl" ]; then echo "Torch 1.1.0 exists."; else docker run --name build-pytorch --rm -v ${PWD}/build-pytorch:/output pytorch:slim; fi
+	if [ -f "${PWD}/build-cupy/cupy-7.3.0-cp37-cp37m-linux_x86_64.whl" ]; then echo "Cupy 7.3.0 exists."; else docker run --name build-cupy --rm -v ${PWD}/build-cupy:/output cupy:slim; fi
 	@echo "Build Docker Image..."
 	DOCKER_BUILDKIT=1 docker build -t spacygpu:latest .
 

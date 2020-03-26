@@ -31,25 +31,16 @@ RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py \
 #     /opt/conda/bin/conda clean -ya
 #ENV PATH /opt/conda/bin:$PATH
 
-# Remove nccl
-RUN apt-get remove -y libnccl-dev libnccl2 cuda-npp-10-0 cuda-cufft-10-0 cuda-nvgraph-10-0 --allow-change-held-packages
+# Remove nccl, etc need cufft, cublas, curand,
+RUN apt-get remove -y libnccl-dev libnccl2 cuda-npp-10-0 cuda-nvgraph-10-0 --allow-change-held-packages
 
-# Need v1.1.0
-RUN git clone -b 'v1.1.0' --single-branch --depth 1 https://github.com/pytorch/pytorch.git
+# Need v7.3
+RUN git clone -b 'v7.3.0' --single-branch --depth 1 https://github.com/cupy/cupy.git
 
-WORKDIR /pytorch
+WORKDIR /cupy
 
-COPY . .
-
-RUN git submodule update --init --recursive
-RUN pip install -r requirements.txt
-
-# Build Pytorch for latest arch only (makes a smaller image):
-
-ENV TORCH_CUDA_ARCH_LIST="7.0+PTX"
-ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
+RUN pip install Cython
 RUN pip wheel .
-#RUN TORCH_CUDA_ARCH_LIST="7.0+PTX" TORCH_NVCC_FLAGS="-Xfatbin -compress-all" CMAKE_PREFIX_PATH="$(dirname $(which conda))/../" \
 
 # once image is built, just copy the wheel over
-CMD cp torch-*.whl /output/
+CMD cp cupy*.whl /output/

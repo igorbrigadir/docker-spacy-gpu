@@ -1,4 +1,4 @@
 .git
 model
-build-pytorch
 *.whl
+libcudnn.so.7
