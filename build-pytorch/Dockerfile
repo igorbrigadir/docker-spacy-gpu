@@ -46,8 +46,8 @@ RUN pip install -r requirements.txt
 
 ENV TORCH_CUDA_ARCH_LIST="7.0+PTX"
 ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
-ENV DCAFFE2_STATIC_LINK_CUDA=0
-ENV DUSE_OPENCV=0
+ENV USE_OPENCV=False
+ENV USE_NCCL=False
 
 RUN pip wheel .
 #RUN TORCH_CUDA_ARCH_LIST="7.0+PTX" TORCH_NVCC_FLAGS="-Xfatbin -compress-all" CMAKE_PREFIX_PATH="$(dirname $(which conda))/../" \
