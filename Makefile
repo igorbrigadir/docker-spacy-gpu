@@ -25,6 +25,12 @@ build:
 	@echo "Build Docker Image..."
 	DOCKER_BUILDKIT=1 docker build -t spacygpu:latest .
 
+squash:
+	docker save spacygpu:latest > spacygpu.tar
+	sudo docker-squash -i spacygpu.tar -o squashed.tar -t spacygpu:squash -verbose
+	docker import squashed.tar spacygpu:squash
+	rm spacygpu.tar squashed.tar
+
 run:
 	@echo "Run Test:"
 	docker run --name spacygpu --rm -it --gpus all -v ${PWD}/model:/model spacygpu:latest
