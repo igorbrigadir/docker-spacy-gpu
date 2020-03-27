@@ -17,12 +17,6 @@ cupy:
 	@echo "Making Cupy 7.3.0 slim version..."
 	if [ ! -z $$(docker images cupy:slim -q) ]; then echo "Cupy builder exists"; else DOCKER_BUILDKIT=1 docker build -t cupy:slim build-cupy/; fi
 
-cudnn:
-	@echo "Exctracting cudnn libs from cupy-cuda100"
-	wget https://files.pythonhosted.org/packages/dd/50/b04c6c183a7e272b8a8b715c47dcd8c371000d08ef3808017d8ee856552b/cupy_cuda100-7.3.0-cp37-cp37m-manylinux1_x86_64.whl
-	unzip -p cupy_cuda100-7.3.0-cp37-cp37m-manylinux1_x86_64.whl cupy/.data/lib/libcudnn.so.7 > build-cupy/libcudnn.so.7
-	rm 	cupy_cuda100-7.3.0-cp37-cp37m-manylinux1_x86_64.whl
-
 install: model pytorch cupy
 
 build:

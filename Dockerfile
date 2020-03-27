@@ -2,11 +2,11 @@ FROM nvidia/cuda:10.0-base
 
 # Setup Python
 ARG DEBIAN_FRONTEND=noninteractive
-# Pick up some python and CUDA toolkit dependencies. exclude libnccl2=2.4.8-1+cuda10.0, cuda-npp-10-0 cuda-cufft-10-0 cuda-nvgraph-10-0
+# Pick up some python and CUDA toolkit dependencies. exclude libnccl2=2.4.8-1+cuda10.0, cuda-npp-10-0 cuda-nvgraph-10-0
 RUN apt-get update \
     && apt-get install -y --no-install-recommends software-properties-common curl bzip2 tcl tk libffi-dev libgomp1 libssl-dev \
     cuda-nvrtc-10-0 cuda-nvtx-10-0 \
-    cuda-cusparse-10-0 cuda-curand-10-0 cuda-cublas-10-0 cuda-cusolver-10-0 \
+    cuda-cusparse-10-0 cuda-curand-10-0 cuda-cublas-10-0 cuda-cusolver-10-0 cuda-cufft-10-0 \
     && add-apt-repository ppa:deadsnakes/ppa && apt-get update && apt-get purge -y python3.6 && apt-get install -y python3.7
 
 RUN rm /usr/bin/python3 /usr/bin/python3m \
@@ -17,9 +17,6 @@ RUN apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/*
 # Install Pytorch 1.1.0 first:
 COPY build-pytorch/torch-1.1.0-cp37-cp37m-linux_x86_64.whl .
 RUN pip3.7 --no-cache-dir install torch-1.1.0-cp37-cp37m-linux_x86_64.whl && rm torch-1.1.0-cp37-cp37m-linux_x86_64.whl
-
-# Copy extracted cudnn library, hacky
-COPY build-cupy/libcudnn.so.7 /usr/lib/x86_64-linux-gnu/libcudnn.so.7
 
 # All other dependencies, remove cupy-cuda100 with extra cuda libraries we don't want
 COPY requirements.txt .

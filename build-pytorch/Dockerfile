@@ -31,15 +31,13 @@ RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py \
 #     /opt/conda/bin/conda clean -ya
 #ENV PATH /opt/conda/bin:$PATH
 
-# Remove nccl
-RUN apt-get remove -y libnccl-dev libnccl2 cuda-npp-10-0 cuda-cufft-10-0 cuda-nvgraph-10-0 --allow-change-held-packages
+# Remove nccl etc
+RUN apt-get remove -y libnccl-dev libnccl2 cuda-npp-10-0 cuda-nvgraph-10-0 --allow-change-held-packages
 
 # Need v1.1.0
 RUN git clone -b 'v1.1.0' --single-branch --depth 1 https://github.com/pytorch/pytorch.git
 
 WORKDIR /pytorch
-
-COPY . .
 
 RUN git submodule update --init --recursive
 RUN pip install -r requirements.txt
@@ -48,6 +46,9 @@ RUN pip install -r requirements.txt
 
 ENV TORCH_CUDA_ARCH_LIST="7.0+PTX"
 ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
+ENV DCAFFE2_STATIC_LINK_CUDA=0
+ENV DUSE_OPENCV=0
+
 RUN pip wheel .
 #RUN TORCH_CUDA_ARCH_LIST="7.0+PTX" TORCH_NVCC_FLAGS="-Xfatbin -compress-all" CMAKE_PREFIX_PATH="$(dirname $(which conda))/../" \
 
