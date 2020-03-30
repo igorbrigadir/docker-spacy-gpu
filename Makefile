@@ -23,13 +23,7 @@ build:
 	if [ -f "${PWD}/build-pytorch/torch-1.1.0-cp37-cp37m-linux_x86_64.whl" ]; then echo "Torch 1.1.0 exists."; else docker run --name build-pytorch --rm -v ${PWD}/build-pytorch:/output pytorch:slim; fi
 	if [ -f "${PWD}/build-cupy/cupy-7.3.0-cp37-cp37m-linux_x86_64.whl" ]; then echo "Cupy 7.3.0 exists."; else docker run --name build-cupy --rm -v ${PWD}/build-cupy:/output cupy:slim; fi
 	@echo "Build Docker Image..."
-	DOCKER_BUILDKIT=1 docker build -t spacygpu:latest .
-
-squash:
-	docker save spacygpu:latest > spacygpu.tar
-	sudo docker-squash -i spacygpu.tar -o squashed.tar -t spacygpu:squash -verbose
-	docker import squashed.tar spacygpu:squash
-	rm spacygpu.tar squashed.tar
+	DOCKER_BUILDKIT=1 docker build -t spacygpu:latest --squash .
 
 run:
 	@echo "Run Test:"
