@@ -1,37 +1,23 @@
-FROM nvidia/cuda:10.0-devel-ubuntu16.04
+FROM nvidia/cuda:10.0-devel-ubuntu18.04
 ARG PYTHON_VERSION=3.7
 ARG WITH_TORCHVISION=0
 
 # Some dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-         build-essential \
-         cmake \
-         git \
-         curl \
-         ca-certificates \
-         software-properties-common bzip2 tcl tk libffi-dev libgomp1 libssl-dev
+         build-essential cmake git curl ca-certificates \
+         software-properties-common bzip2 libffi-dev libgomp1 libssl-dev
 
-# Python 3.7
-RUN add-apt-repository ppa:deadsnakes/ppa && apt-get update
-RUN apt-get install -y python3.7 python3.7-dev
-RUN rm /usr/bin/python3 /usr/bin/python3m \
-    && ln -s /usr/bin/python3.7 /usr/bin/python \
-    && ln -s /usr/bin/python3.7 /usr/bin/python3 \
-    && ln -s /usr/bin/python3.7m /usr/bin/python3m
-RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py \
-    && python get-pip.py
+# For MKL, add mkl mkl-include
+RUN curl -o ~/miniconda.sh -O https://repo.continuum.io/miniconda/Miniconda3-4.7.12.1-Linux-x86_64.sh && \
+     chmod +x ~/miniconda.sh && \
+     ~/miniconda.sh -b -p /opt/conda && \
+     rm ~/miniconda.sh && \
+     /opt/conda/bin/conda install -y python=$PYTHON_VERSION nomkl numpy pyyaml scipy ipython ninja cython typing && \
+     /opt/conda/bin/conda install -y -c pytorch magma-cuda100 && \
+     /opt/conda/bin/conda clean -ya
+ENV PATH /opt/conda/bin:$PATH
 
-# MKL
-#RUN curl -o ~/miniconda.sh -O https://repo.continuum.io/miniconda/Miniconda3-py37_4.8.2-Linux-x86_64.sh && \
-#     chmod +x ~/miniconda.sh && \
-#     ~/miniconda.sh -b -p /opt/conda && \
-#     rm ~/miniconda.sh && \
-#     /opt/conda/bin/conda install -y python=$PYTHON_VERSION numpy pyyaml scipy ipython mkl mkl-include ninja cython typing && \
-#     /opt/conda/bin/conda install -y -c pytorch magma-cuda100 && \
-#     /opt/conda/bin/conda clean -ya
-#ENV PATH /opt/conda/bin:$PATH
-
-# Remove nccl etc
+# Remove nccl, etc. need cufft, cublas, curand, cusolver
 RUN apt-get remove -y libnccl-dev libnccl2 cuda-npp-10-0 cuda-nvgraph-10-0 --allow-change-held-packages
 
 # Need v1.1.0
@@ -46,11 +32,20 @@ RUN pip install -r requirements.txt
 
 ENV TORCH_CUDA_ARCH_LIST="7.0+PTX"
 ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
-ENV USE_OPENCV=False
-ENV USE_NCCL=False
+ENV USE_CUDNN=0
+ENV USE_OPENCV=0
+ENV USE_NCCL=0
+ENV BUILD_TEST=0
+ENV USE_FFMPEG=0
+ENV USE_MKLDNN=0
+ENV USE_DISTRIBUTED=0
+ENV USE_IBVERBS=0
+ENV BUILD_CAFFE2_OPS=0
+ENV MAX_JOBS=32
+ENV BLAS=Eigen
+ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
 
 RUN pip wheel .
-#RUN TORCH_CUDA_ARCH_LIST="7.0+PTX" TORCH_NVCC_FLAGS="-Xfatbin -compress-all" CMAKE_PREFIX_PATH="$(dirname $(which conda))/../" \
 
 # once image is built, just copy the wheel over
 CMD cp torch-*.whl /output/
