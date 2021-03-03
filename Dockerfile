@@ -7,8 +7,15 @@ ENV DOCKER_STAGE=build
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
+# Install slimmed pytorch (supports CUDA Toolkit 7.5+PTX only)
+COPY build-pytorch/torch-1.7.0a0-cp37-cp37m-linux_x86_64.whl .
+RUN pip install --force-reinstall torch-1.7.0a0-cp37-cp37m-linux_x86_64.whl
+
+COPY build-cupy/cupy-8.4.0-cp37-cp37m-linux_x86_64.whl .
+RUN pip install --force-reinstall cupy-8.4.0-cp37-cp37m-linux_x86_64.whl
+
 COPY requirements.txt .
-RUN pip install -r requirements.txt
+RUN pip install -r requirements.txt --no-deps
 
 FROM python:3.7-slim-buster as run-image
 ENV DOCKER_STAGE=run
@@ -24,17 +31,21 @@ RUN apt update && apt install -y --no-install-recommends gnupg2 curl ca-certific
 
 ENV CUDA_VERSION 11.0.3
 
+# Smaller cuda install than cuda-libraries-11-0 removes: libnpp-11-0, libnvjpeg-11-0.
 RUN apt update && apt install -y --no-install-recommends \
-    cuda-libraries-11-0=11.0.3-1 \
-    cuda-cudart-11-0=11.0.221-1 \
-    cuda-compat-11-0 \
+    cuda-cudart-11-0 \
     cuda-nvrtc-11-0 \
-    cuda-nvtx-11-0=11.0.167-1 \
-    libcusparse-11-0=11.1.1.245-1 \
-    libcublas-11-0=11.2.0.252-1 \
-    libgomp1 \ 
+    libcublas-11-0 \
+    libcufft-11-0 \
+    libcurand-11-0 \
+    libcusolver-11-0 \
+    libcusparse-11-0 \
+    cuda-compat-11-0 \
+    cuda-nvtx-11-0 \
+    libgomp1 \
     && ln -s cuda-11.0 /usr/local/cuda && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* .cache/
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* .cache/ && \
+    rm /usr/local/cuda/targets/x86_64-linux/lib/libcusolverMg.so*
 
 RUN echo "/usr/local/nvidia/lib" >> /etc/ld.so.conf.d/nvidia.conf \
     && echo "/usr/local/nvidia/lib64" >> /etc/ld.so.conf.d/nvidia.conf
