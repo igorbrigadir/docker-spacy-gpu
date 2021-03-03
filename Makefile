@@ -19,7 +19,7 @@ install:
 
 build:
 	@echo "Build Docker Image..."
-	DOCKER_BUILDKIT=1 docker build -t spacygpu:latest .
+	DOCKER_BUILDKIT=1 docker build -t spacygpu:latest --squash .
 
 run:
 	@echo "Run Test:"
