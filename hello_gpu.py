@@ -1,4 +1,6 @@
 import spacy
+from copy import copy
+from spacy_transformers.pipeline_component import DEFAULT_CONFIG
 from thinc.api import Config, set_gpu_allocator, require_gpu
 
 if spacy.prefer_gpu():
@@ -8,26 +10,11 @@ if spacy.prefer_gpu():
 else:
     print("\n\033[91m" + "✘ NOT Using GPU!" + "\033[0m\n")
 
-distilbert = """
-[transformer]
-max_batch_items = 4096
-
-[transformer.model]
-@architectures = "spacy-transformers.TransformerModel.v1"
-name = "model/distilbert-base-nli-stsb-mean-tokens"
-tokenizer_config = {"use_fast": true}
-
-[transformer.model.get_spans]
-@span_getters = "spacy-transformers.strided_spans.v1"
-window = 128
-stride = 96
-"""
-
-CONFIG = Config().from_str(distilbert)
+config = copy(DEFAULT_CONFIG["transformer"])
+config["model"]["name"] = "model/distilbert-base-nli-stsb-mean-tokens"
 
 nlp = spacy.blank("en")
-
-transformer = nlp.add_pipe("transformer", config=CONFIG["transformer"])
+transformer = nlp.add_pipe("transformer", config=config)
 transformer.model.initialize()
 
 doc = nlp("hello world")
