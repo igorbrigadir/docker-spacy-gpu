@@ -23,7 +23,7 @@ protobuf==3.18.3
 pydantic==1.7.4
 pyparsing==2.4.7
 regex==2020.11.13
-requests==2.25.1
+requests==2.31.0
 sacremoses==0.0.43
 sentencepiece==0.1.91
 six==1.15.0
