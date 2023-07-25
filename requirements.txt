@@ -2,7 +2,7 @@ torch @ file:///torch-1.7.0a0-cp37-cp37m-linux_x86_64.whl
 cupy @ file:///cupy-8.4.0-cp37-cp37m-linux_x86_64.whl
 blis==0.7.4
 catalogue==2.0.1
-certifi==2022.12.7
+certifi==2023.7.22
 chardet==4.0.0
 click==7.1.2
 cymem==2.0.5
